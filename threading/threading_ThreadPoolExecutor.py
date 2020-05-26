@@ -8,22 +8,35 @@ def do_something(sleepTime):
     return("Done sleeping {time} seconds(s)...".format(time=sleepTime))
 
 
-def execute(listofSeconds):
-    # create threads where the input is a list of sleep time in seconds
+def execute(secondslist, manner, printMethod):
     executor = concurrent.futures.ThreadPoolExecutor()
-    threadList = [executor.submit(do_something, sec) for sec in listofSeconds]
 
-    # prints results of threads as they come in (should be in ascending order in this case)
-    completed_returns = concurrent.futures.as_completed(threadList)
-    for thread in completed_returns: print(thread.result())
+    if manner is "ThreadPoolExecutor":
+        threadlist = [executor.submit(do_something, sec) for sec in secondslist]
+        if printMethod is "as_completed":
+            threadsWithResults = concurrent.futures.as_completed(threadlist)
+            for thread in threadsWithResults: print(thread.result())
+        elif printMethod is "in_order_of_started":
+            for thread in threadlist: print(thread.result())
 
-    # # prints results in the order that they are started
-    # for thread in threadList: print(thread.result())
+    elif manner is "executorMaps":
+        threadlist = executor.map(do_something, secondslist)
+        if printMethod is "as_completed":
+            print("As completed can't be achieved with executor.maps")
+        elif printMethod is "in_order_of_started":
+            for results in threadlist: print(results)
+
 
 if __name__ == "__main__":
     threadSleepList = [5, 4, 3, 2, 1]
+    printMethod = {"as_completed": "as_completed", "in_order_of_started": "in_order_of_started"}
+    manner = {"ThreadPoolExecutor": "ThreadPoolExecutor", "executorMaps": "executorMaps"}
+
     start = time.perf_counter()
-    execute(threadSleepList)
+
+    try: execute(threadSleepList, manner["executorMaps"], printMethod["in_order_of_started"], )
+    except KeyError: print("Either Printing Method or Manner is not specified properly")
+
     finish = time.perf_counter()
     duration = round(finish - start, 2)
     print("Program Duration is {length}".format(length=duration))
